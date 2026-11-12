@@ -1,0 +1,29 @@
+name: Guardar retail
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  guardar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install curl_cffi
+      - run: python guardar_retail.py
+        env:
+          MYFXBOOK_EMAIL: ${{ secrets.MYFXBOOK_EMAIL }}
+          MYFXBOOK_PASSWORD: ${{ secrets.MYFXBOOK_PASSWORD }}
+      - run: |
+          git config user.name "retail-bot"
+          git config user.email "retail-bot@users.noreply.github.com"
+          git add historial_retail.csv
+          git diff --cached --quiet || git commit -m "Retail del dia"
+          git push
